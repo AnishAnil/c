@@ -1,0 +1,63 @@
+---
+- name: This playbook is to install apache2
+  hosts: localhost 
+  become: true
+  become_method: sudo
+  vars:
+    g1: eemgrp
+    g2: hostmstr
+  tasks:
+    - name: install apache2
+      apt:
+       name: apache2 
+       update_cache: yes 
+       state: latest
+
+    - name: enabled mod_rewrite
+      apache2_module: 
+        name: rewrite 
+        state: present
+      notify:
+        - restart apache2
+
+    - name: Add group "eemgrp"  & "hostmstr" to remote server --> AK.1.7.6
+      group:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "{{g1}}"
+        - "{{g2}}"
+      tags:
+        - AK.1.7.6
+    - debug: 
+        msg: "eemgrp & hostmstr group creatd "
+
+    - name: Create and Add User "eemadmin" to group "eemgrp" --> AK.1.7.7
+      user:
+        name: "{{ item.name }}"
+        comment: "Privileged User"
+        state: present
+        groups: "{{ item.groups }}"
+      with_items:
+        - { name: 'eemadmin', groups: 'eemgrp' }
+        - { name: 'hostmstr', groups: 'hostmstr' }
+      tags:
+       - AK.1.7.7
+    - debug: 
+        msg: "eemadmin & hostmstr Users creatd"
+    - name: Modify Directory Permissions of /tech/web  with the correct user and group permissions --> AK.6.1.4.1
+      file:
+          path: /tech/web
+          state: directory
+          owner: hostmstr
+          group: hostmstr
+          mode: 0775
+      tags:
+       - AK.6.1.4.1
+    - debug: 
+        msg: "/tech/web file permisions have been set back to hostmstr & hostmstr "
+  handlers:
+    - name: restart apache2
+      service: 
+        name: apache2 
+        state: restarted
