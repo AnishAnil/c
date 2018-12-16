@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Test') {
       steps {
-        sh 'kitchen test'
+        sh 'apache2/kitchen test'
       }
     }
   }
