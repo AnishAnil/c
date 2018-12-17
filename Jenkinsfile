@@ -3,7 +3,8 @@ pipeline {
   stages {
     stage('Test') {
       steps {
-        sh '/apache2/kitchen verify'
+        sh 'sudo cd /home/ubuntu/workspace/Test_Jenkins12/apache2/'
+        sh 'sudo kitchen verify'
       }
     }
   }
